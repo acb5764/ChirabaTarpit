@@ -135,7 +135,7 @@ const server = http.createServer((req, res) => {
               break;
             case "scrum":
               var pythonData;
-              const python = spawn("python3", ["script.py"]);
+              const python = spawn("python3", ["script.py"], {cwd: __dirname});
               python.stdout.on("data", function (data) {
                 pythonData = data.toString();
               });
