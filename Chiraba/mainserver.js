@@ -27,6 +27,7 @@ const server = http.createServer((req, res) => {
     msg = "";
     let responseJson = "";
     // regardless of request method:
+    c++;
     if (
       queryObject.size == null &&
       queryObject.delay == null &&
@@ -63,7 +64,7 @@ const server = http.createServer((req, res) => {
             queryObject.list == "customList"
           ) {
             customList.push(request_body);
-            responseJson = customList;
+            responseJson = request_body;
           } else {
             if (
               queryObject.list &&
