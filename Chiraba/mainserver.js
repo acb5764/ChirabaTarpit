@@ -214,19 +214,7 @@ function log_ip(ip_addr) {
   console.log("Req Made with no objective from IP: " + ip_addr);
   if (whitelist.indexOf(ip_addr) == -1) {
     add_to_list(ip_addr, iplog);
-    var histo = {};
-    for (var i = 0; i < iplog.length; ++i) {
-      // iterate the list and see how many times the IP appears. Not efficient, but should be fine.
-      if (histo[iplog[i]]) {
-        ++histo[iplog[i]];
-        if (histo[iplog[i]] > 1) {
-          // Dont do anything if its on the whitelist.
-          add_to_list(iplog[i], review);
-        }
-      } else {
-        histo[ip_addr] = 1;
-      }
-    }
+    add_to_list(ip_addr, review);
   }
 }
 
@@ -238,7 +226,6 @@ function add_to_list(ip_addr, list_to_add) {
 }
 
 function remove_from_list(ip_addr, list_to_remove) {
-  // list_to_remove.pop(list_to_remove.indexOf(ip_addr)); this doesnt work, because pop takes no arguments like python does
   var i = 0;
   while (i < list_to_remove.length) {
     if (list_to_remove[i] === ip_addr) {
