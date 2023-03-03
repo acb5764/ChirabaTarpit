@@ -1,9 +1,8 @@
+
 var http = require("http");
 const url = require("url");
 const { parse } = require("querystring");
 const { spawn } = require("child_process");
-const os = require("os");
-const hostname = os.hostname();
 const port = 8080;
 const internal_net = "192.168.2."; // 192.168.2.
 const passwurd = "mMwnvCLWUs{9S5HyUEFg";
