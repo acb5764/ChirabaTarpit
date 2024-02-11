@@ -2,16 +2,16 @@ var http = require("http");
 const url = require("url");
 const { parse } = require("querystring");
 const { spawn } = require("child_process");
-const hostname = "127.0.0.1";
 const port = 8080;
 const internal_net = "192.168.2."; // 192.168.2.
 const passwurd = "mMwnvCLWUs{9S5HyUEFg";
+const hostname = "0.0.0.0"
 let c = 0;
 let customList = []; // can be cleared
 let iplog = []; // hold a list of IPs that make a req with no accepted params.
 let blacklist = []; // ips who are repeat-offenders get added to a blacklist
 let review = [];
-let whitelist = ["192.168.2.29"];
+let whitelist = ["192.168.2.221"];
 let queryLog = [];
 
 // load data
@@ -35,7 +35,7 @@ const server = http.createServer((req, res) => {
       queryObject.statCode == null &&
       req.url != "/favicon.ico" // some browsers automatically do this (chrome :barf: )
     ) {
-      log_ip(ip);
+      log_ip(ip, req);
       responseJson = "Repeated Unsolicited Requests will be blocked";
       setTimeout(() => respond(res, responseJson, statCode), 1000 * delay);
       return;
@@ -159,6 +159,9 @@ const server = http.createServer((req, res) => {
             case "iplog":
               responseJson = iplog;
               break;
+            case "queryLog":
+              responseJson = queryLog;
+              break;
             default:
               responseJson = "no such size";
               statCode = 404;
@@ -210,23 +213,30 @@ const server = http.createServer((req, res) => {
   }
 });
 
-function log_ip(ip_addr) {
-  console.log("Req Made with no objective from IP: " + ip_addr);
+function log_ip(ip_addr, req) {
+  body = [];
+  let request_body = null;
+  req.on("data", (chunk) => body.push(chunk));
+  req.on("end", () => {
+    request_body = Buffer.concat(body).toString();
+    console.log("Req Made with no objective from IP: " + ip_addr + " " + request_body + " " + req.url);
+    if (request_body != null || req.url != "/favicon.ico") {
+      now = new Date();
+      isoString = now.toISOString();
+      queryLog.push(
+        {
+          ip: ip_addr,
+          body: request_body,
+          url: req.url,
+          headers: req.headers,
+          observed_at: isoString,
+        }
+      );
+    }
+});
   if (whitelist.indexOf(ip_addr) == -1) {
     add_to_list(ip_addr, iplog);
-    var histo = {};
-    for (var i = 0; i < iplog.length; ++i) {
-      // iterate the list and see how many times the IP appears. Not efficient, but should be fine.
-      if (histo[iplog[i]]) {
-        ++histo[iplog[i]];
-        if (histo[iplog[i]] > 1) {
-          // Dont do anything if its on the whitelist.
-          add_to_list(iplog[i], review);
-        }
-      } else {
-        histo[ip_addr] = 1;
-      }
-    }
+    add_to_list(ip_addr, review);
   }
 }
 
@@ -238,7 +248,6 @@ function add_to_list(ip_addr, list_to_add) {
 }
 
 function remove_from_list(ip_addr, list_to_remove) {
-  // list_to_remove.pop(list_to_remove.indexOf(ip_addr)); this doesnt work, because pop takes no arguments like python does
   var i = 0;
   while (i < list_to_remove.length) {
     if (list_to_remove[i] === ip_addr) {
