@@ -1,0 +1,118 @@
+version: 2.9.9
+required_threatq_version: ">=5.10.0"
+feeds:
+  Chiraba QueryLog (EU West):
+    namespace: queryLog.list.chirabaEUWEST
+    user_fields:
+      - name: host
+    source:
+      http:
+        url: !expr user_fields.host
+    filters:
+      - json
+      - iterate
+    report:
+      attribute-sets:
+        default:
+          items:
+            - name: URL Requested
+              value: !expr data.url
+              condition: !expr data.url != '/'
+            - name: Request Body
+              value: !expr data.body
+              condition: !expr data.body
+      indicator-sets:
+        default:
+          indicators:
+            - type: IP Address
+              value: !expr data.ip
+              status: !expr Active if data.body or data.url != '/'
+          attribute-sets:
+            - default
+
+  Chiraba QueryLog (US Central):
+    namespace: queryLog.list.chirabaUSCENT
+    user_fields:
+      - name: host
+    source:
+      http:
+        url: !expr user_fields.host
+    filters:
+      - json
+      - iterate
+    report:
+      attribute-sets:
+        default:
+          items:
+            - name: URL Requested
+              value: !expr data.url
+              condition: !expr data.url != '/'
+            - name: Request Body
+              value: !expr data.body
+              condition: !expr data.body
+      indicator-sets:
+        default:
+          indicators:
+            - type: IP Address
+              value: !expr data.ip
+              status: !expr Active if data.body or data.url != '/'
+          attribute-sets:
+            - default
+
+  Chiraba QueryLog (US ORD):
+    namespace: queryLog.list.chirabaUSORD
+    user_fields:
+      - name: host
+    source:
+      http:
+        url: !expr user_fields.host
+    filters:
+      - json
+      - iterate
+    report:
+      attribute-sets:
+        default:
+          items:
+            - name: URL Requested
+              value: !expr data.url
+              condition: !expr data.url != '/'
+            - name: Request Body
+              value: !expr data.body
+              condition: !expr data.body
+      indicator-sets:
+        default:
+          indicators:
+            - type: IP Address
+              value: !expr data.ip
+              status: !expr Active if data.body or data.url != '/'
+          attribute-sets:
+            - default
+
+  Chiraba QueryLog (US West):
+    namespace: queryLog.list.chirabaUSWEST
+    user_fields:
+      - name: host
+    source:
+      http:
+        url: !expr user_fields.host
+    filters:
+      - json
+      - iterate
+    report:
+      attribute-sets:
+        default:
+          items:
+            - name: URL Requested
+              value: !expr data.url
+              condition: !expr data.url != '/'
+            - name: Request Body
+              value: !expr data.body
+              condition: !expr data.body
+      indicator-sets:
+        default:
+          indicators:
+            - type: IP Address
+              value: !expr data.ip
+              status: !expr Active if data.body or data.url != '/'
+          attribute-sets:
+            - default
