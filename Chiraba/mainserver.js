@@ -1,4 +1,12 @@
-var http = require("http");
+const http = require('http');
+const https = require('https')
+const fs = require('fs');
+
+const options = {
+  key: fs.readFileSync('./myserver.key'),
+  cert: fs.readFileSync('./myserver.crt')
+};
+
 const url = require("url");
 const { parse } = require("querystring");
 const { spawn } = require("child_process");
@@ -17,8 +25,10 @@ let queryLog = [];
 // load data
 const { small, big, malcodeips, malcodedomains } = require("./data.json");
 
-const server = http.createServer((req, res) => {
-  let statCode = 200;
+const server = http.createServer((req, res) => server_instance(req, res));
+const https_server = https.createServer(options, (req, res) => server_instance(req, res))
+
+function server_instance(req, res){  let statCode = 200;
   let delay = 0;
   let request_body = null;
   let ip = req.socket.remoteAddress;
@@ -211,7 +221,7 @@ const server = http.createServer((req, res) => {
     console.error(error);
     respond(res, "Internal Server Error", 500);
   }
-});
+}
 
 function log_ip(ip_addr, req) {
   body = [];
@@ -266,4 +276,8 @@ function respond(res, response, statCode, content_type = "application/json") {
 
 server.listen(port, hostname, (req) => {
   console.log(`server running at http://${hostname}:${port}`);
+});
+
+https_server.listen(443, hostname, (req) => {
+  console.log(`server running at https://${hostname}:443`);
 });
