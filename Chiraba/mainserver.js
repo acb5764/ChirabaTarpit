@@ -2,80 +2,82 @@ const http = require('http');
 const https = require('https')
 const fs = require('fs');
 
-const options = {
-  key: fs.readFileSync('./myserver.key'),
-  cert: fs.readFileSync('./myserver.crt')
-};
+// const options = {
+//   key: fs.readFileSync('./myserver.key'),
+//   cert: fs.readFileSync('./myserver.crt')
+// };
 
 const url = require("url");
 const port = 8080;
 const hostname = "0.0.0.0"
 let customList = [];
-let iplog = []; // hold a list of IPs that make a req with no accepted params.
 let queryLog = [];
 
 const server = http.createServer((req, res) => server_instance(req, res));
-const https_server = https.createServer(options, (req, res) => server_instance(req, res))
+// const https_server = https.createServer(options, (req, res) => server_instance(req, res))
 
 function server_instance(req, res){
   let ip = req.socket.remoteAddress;
-  try {
-    const queryObject = url.parse(req.url, true).query;
-    msg = "";
-    let responseJson = "";
-    // regardless of request method:
-    if (
-      req.url != "/favicon.ico" &&
-      queryObject.qlist == null
-    ) {
-      log_ip(ip, req);
-      responseJson = "Welcome to Chiraba!";
-      return;
-    }
-
+  const queryObject = url.parse(req.url, true).query;
+  msg = "";
+  let responseJson = "";
+  // regardless of request method:
+  if (
+    req.url != "/favicon.ico" &&
+    queryObject.qlist == null
+  ) {
+    log_ip(ip, req);
+    responseJson = "Welcome to Chiraba!";
+    respond(res, responseJson, 200);
+    return;
+  }
+  try{
+    let statCode = 400;
     switch (req.method) {
       case "GET":
         if (queryObject.qlist && queryObject.qlist.toString().length > 1) {
           switch (queryObject.qlist) {
             case "clear":
               customList = [];
-              responseJson = "custom list cleared";
+              responseJson = "customList cleared";
+              statCode = 200;
               break;
             case "customList" || "customlist":
               responseJson = customList;
-              break;
-            case "iplog":
-              responseJson = iplog;
+              statCode = 200;
               break;
             case "queryLog":
               responseJson = queryLog;
+              statCode = 200;
               break;
+            case "querySince":
+              responseJson = find_since(queryObject.since);
+              statCode = 200;
           }
         }
-        if (queryObject.qlist && queryObject.qlist.toString().length > 1) {
-          switch (queryObject.qlist) {
-            default:
-              responseJson = "list not found.";
-              statCode = 404;
-          }
-        }
-        break;
+        respond(res, responseJson, statCode);
+        return;
       case "POST":
         let body = [];
         req.on("data", (chunk) => body.push(chunk));
         req.on("end", () => {
           const request_body = Buffer.concat(body).toString();
           if (
-            queryObject.size == "customList" ||
-            queryObject.list == "customList"
+            queryObject.qlist == "customList" ||
+            queryObject.qlist == "customList"
           ) {
             customList.push(request_body);
             responseJson = request_body;
+            statCode = 200;
+            respond(res, responseJson, statCode);
           }
         });
-        break;
+        return;
       default:
-        responseJson = "Invalid Method";
+        responseJson = "Method not allowed";
+        statCode = 405;
+        respond(res, responseJson, statCode);
+        return;
     }
   } catch (error) {
     console.error(error);
@@ -83,9 +85,14 @@ function server_instance(req, res){
   }
 }
 
+function find_since(since_timestamp){
+  // Add searching here
+}
+
+
 function log_ip(ip_addr, req) {
   body = [];
-  let request_body = null;
+  let request_body = "";
   let log_object = {};
   req.on("data", (chunk) => body.push(chunk));
   req.on("end", () => {
@@ -109,12 +116,13 @@ function respond(res, response, statCode, content_type = "application/json") {
   res.statusCode = statCode;
   res.setHeader("Content-Type", content_type);
   res.end(JSON.stringify(response));
+  return;
 }
 
 server.listen(port, hostname, (req) => {
   console.log(`server running at http://${hostname}:${port}`);
 });
 
-https_server.listen(443, hostname, (req) => {
-  console.log(`server running at https://${hostname}:443`);
-});
+// https_server.listen(443, hostname, (req) => {
+//   console.log(`server running at https://${hostname}:443`);
+// });
