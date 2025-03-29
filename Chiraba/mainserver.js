@@ -10,7 +10,6 @@ const options = {
 const url = require("url");
 const port = 8080;
 const hostname = "0.0.0.0"
-let customList = [];
 let iplog = []; // hold a list of IPs that make a req with no accepted params.
 let queryLog = [];
 
@@ -30,6 +29,7 @@ function server_instance(req, res){
     ) {
       log_ip(ip, req);
       responseJson = "Welcome to Chiraba!";
+      respond(res, responseJson, 200)
       return;
     }
 
@@ -37,13 +37,6 @@ function server_instance(req, res){
       case "GET":
         if (queryObject.qlist && queryObject.qlist.toString().length > 1) {
           switch (queryObject.qlist) {
-            case "clear":
-              customList = [];
-              responseJson = "custom list cleared";
-              break;
-            case "customList" || "customlist":
-              responseJson = customList;
-              break;
             case "iplog":
               responseJson = iplog;
               break;
@@ -59,20 +52,6 @@ function server_instance(req, res){
               statCode = 404;
           }
         }
-        break;
-      case "POST":
-        let body = [];
-        req.on("data", (chunk) => body.push(chunk));
-        req.on("end", () => {
-          const request_body = Buffer.concat(body).toString();
-          if (
-            queryObject.size == "customList" ||
-            queryObject.list == "customList"
-          ) {
-            customList.push(request_body);
-            responseJson = request_body;
-          }
-        });
         break;
       default:
         responseJson = "Invalid Method";
